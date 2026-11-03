@@ -1,0 +1,214 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perpustakaan Animasi Fisika</title>
+
+<script>
+window.RufflePlayer = window.RufflePlayer || {};
+window.RufflePlayer.config = {
+    autoplay: "on",
+    unmuteOverlay: "visible"
+};
+</script>
+<script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #101827;
+    color: white;
+}
+header {
+    background: #064e3b;
+    padding: 25px;
+    text-align: center;
+}
+header h1 { margin: 0 0 8px; }
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 20px;
+}
+input {
+    width: 100%;
+    padding: 14px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: none;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+#list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+    gap: 10px;
+}
+.item {
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid #334155;
+}
+.item:hover {
+    background: #065f46;
+}
+#playerBox {
+    display: none;
+    margin-top: 25px;
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 10px;
+}
+#player {
+    width: 100%;
+    min-height: 400px;
+    background: black;
+}
+#player embed, #player object, #player ruffle-player {
+    width: 100%;
+    height: 600px;
+}
+button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #059669;
+    color: white;
+    margin: 8px 0;
+}
+footer {
+    text-align: center;
+    padding: 25px;
+    color: #94a3b8;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>⚛️ ANIMASI PEMBELAJARAN FISIKA</h1>
+    <p>Perpustakaan Digital Animasi Interaktif</p>
+    <p>SMANELA</p>
+</header>
+
+<div class="container">
+
+    <input type="text" id="search"
+    placeholder="Cari materi atau nama animasi...">
+
+    <p id="info">Memuat koleksi animasi...</p>
+
+    <div id="list"></div>
+
+    <div id="playerBox">
+        <h3 id="judul"></h3>
+        <button onclick="tutup()">Tutup Animasi</button>
+        <div id="player"></div>
+    </div>
+
+</div>
+
+<footer>
+    SMAN 5 CIREBON | PERPUSTAKAAN ANIMASI FISIKA
+</footer>
+
+<script>
+
+const API =
+"https://api.github.com/repos/kurniadi77/animfisika/contents/";
+
+const RAW =
+"https://raw.githubusercontent.com/kurniadi77/animfisika/main/";
+
+let animasi = [];
+
+async function muatData() {
+    try {
+        const response = await fetch(API);
+
+        if (!response.ok) {
+            throw new Error("Gagal mengambil data GitHub");
+        }
+
+        const data = await response.json();
+
+        animasi = data.filter(file =>
+            file.type === "file" &&
+            file.name.toLowerCase().endsWith(".swf")
+        );
+
+        animasi.sort((a,b) =>
+            a.name.localeCompare(b.name)
+        );
+
+        tampilkan(animasi);
+
+        document.getElementById("info").textContent =
+            animasi.length + " animasi tersedia";
+
+    } catch (error) {
+        document.getElementById("info").textContent =
+            "Gagal memuat koleksi. Silakan refresh halaman.";
+    }
+}
+
+function tampilkan(data) {
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+
+    data.forEach(file => {
+        const item = document.createElement("div");
+        item.className = "item";
+        item.textContent = "▶ " + file.name.replace(/\.swf$/i,"");
+
+        item.onclick = () => bukaAnimasi(file.name);
+
+        list.appendChild(item);
+    });
+}
+
+function bukaAnimasi(nama) {
+    document.getElementById("playerBox").style.display = "block";
+    document.getElementById("judul").textContent = nama;
+
+    const player = document.getElementById("player");
+    player.innerHTML = "";
+
+    const embed = document.createElement("embed");
+    embed.setAttribute("src", RAW + encodeURIComponent(nama));
+    embed.setAttribute("type", "application/x-shockwave-flash");
+    embed.setAttribute("width", "100%");
+    embed.setAttribute("height", "600");
+
+    player.appendChild(embed);
+
+    document.getElementById("playerBox").scrollIntoView({
+        behavior: "smooth"
+    });
+}
+
+function tutup() {
+    document.getElementById("player").innerHTML = "";
+    document.getElementById("playerBox").style.display = "none";
+}
+
+document.getElementById("search").addEventListener("input", function() {
+    const kata = this.value.toLowerCase();
+
+    tampilkan(animasi.filter(file =>
+        file.name.toLowerCase().includes(kata)
+    ));
+});
+
+muatData();
+
+</script>
+</body>
+</html>
